@@ -5,7 +5,7 @@ import (
 	"gitlab.com/ignitionrobotics/billing/credits/pkg/api"
 )
 
-// client contains the HTTP client to connect to the CreditsV1
+// client contains the HTTP client to connect to the credits API.
 type client struct{}
 
 // IncreaseCredits performs an HTTP request to increase the given user credits.
