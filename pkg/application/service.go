@@ -32,12 +32,12 @@ func (s *credits) ConvertCurrency(ctx context.Context, req api.ConvertCurrencyRe
 	panic("implement me")
 }
 
-// Service holds the methods of the
+// Service holds the methods of the service in charge of managing user credits.
 type Service interface {
 	api.CreditsV1
 }
 
-// NewService initializes a new CreditsV1 service implementation.
+// NewService initializes a new api.CreditsV1 service implementation.
 func NewService(logger *log.Logger) Service {
 	if logger == nil {
 		logger = log.New(io.Discard, "", log.LstdFlags)

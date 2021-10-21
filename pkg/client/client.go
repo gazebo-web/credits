@@ -28,11 +28,12 @@ func (c *client) ConvertCurrency(ctx context.Context, req api.ConvertCurrencyReq
 	panic("implement me")
 }
 
+// Client holds methods to interact with the api.CreditsV1.
 type Client interface {
 	api.CreditsV1
 }
 
-// NewClient initializes a new CreditsV1 implementation using an HTTP client.
+// NewClient initializes a new api.CreditsV1 client implementation using an HTTP client.
 func NewClient() Client {
 	return &client{}
 }
