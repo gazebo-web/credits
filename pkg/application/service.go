@@ -32,7 +32,7 @@ func (s *service) ConvertCurrency(ctx context.Context, req api.ConvertCurrencyRe
 	panic("implement me")
 }
 
-// Service holds the methods of the service in charge of managing user service.
+// Service holds the methods of the service in charge of managing user credits.
 type Service interface {
 	api.CreditsV1
 }
