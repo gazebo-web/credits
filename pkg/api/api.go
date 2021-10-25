@@ -17,18 +17,26 @@ type CreditsV1 interface {
 	ConvertCurrency(ctx context.Context, req ConvertCurrencyRequest) (ConvertCurrencyResponse, error)
 }
 
+// IncreaseCreditsRequest is the input for the CreditsV1.IncreaseCredits method.
 type IncreaseCreditsRequest struct{}
 
+// IncreaseCreditsResponse is the output of the CreditsV1.IncreaseCredits method.
 type IncreaseCreditsResponse struct{}
 
+// DecreaseCreditsRequest is the input for the CreditsV1.DecreaseCredits method.
 type DecreaseCreditsRequest struct{}
 
+// DecreaseCreditsResponse is the output of the CreditsV1.DecreaseCredits method.
 type DecreaseCreditsResponse struct{}
 
+// GetBalanceRequest is the input for the CreditsV1.GetBalance method.
 type GetBalanceRequest struct{}
 
+// GetBalanceResponse is the output of the CreditsV1.GetBalance method.
 type GetBalanceResponse struct{}
 
+// ConvertCurrencyRequest is the input for the CreditsV1.ConvertCurrency method.
 type ConvertCurrencyRequest struct{}
 
+// ConvertCurrencyResponse is the output of the CreditsV1.ConvertCurrency method.
 type ConvertCurrencyResponse struct{}
