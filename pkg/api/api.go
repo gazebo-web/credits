@@ -18,7 +18,16 @@ type CreditsV1 interface {
 }
 
 // IncreaseCreditsRequest is the input for the CreditsV1.IncreaseCredits method.
-type IncreaseCreditsRequest struct{}
+type IncreaseCreditsRequest struct {
+	// User is the username of the User that will receive the credits.
+	User string
+
+	// Amount is the money that the user paid in cents.
+	Amount uint
+
+	// Currency is the currency the user paid in.
+	Currency string
+}
 
 // IncreaseCreditsResponse is the output of the CreditsV1.IncreaseCredits method.
 type IncreaseCreditsResponse struct{}
