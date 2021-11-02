@@ -244,6 +244,7 @@ func (s *testManageCreditsSuite) TestDecreaseCreditsConversionApplied() {
 	s.Require().NoError(err)
 	s.Assert().Equal(before.Credits-5, after.Credits)
 }
+
 func (s *testManageCreditsSuite) TestGetBalanceMissingAttributes() {
 	_, err := s.Service.GetBalance(context.Background(), api.GetBalanceRequest{
 		Handle:      "",
@@ -286,6 +287,41 @@ func (s *testManageCreditsSuite) TestGetBalance() {
 	})
 	s.Require().NoError(err)
 	s.Assert().Equal(balance, res.Credits)
+}
+
+func (s *testManageCreditsSuite) TestConvertCreditsAmountIsZero() {
+	res, err := s.Service.ConvertCurrency(context.Background(), api.ConvertCurrencyRequest{
+		Amount:   0,
+		Currency: "usd",
+	})
+	s.Require().NoError(err)
+	s.Assert().Equal(uint(0), res.Credits)
+}
+
+func (s *testManageCreditsSuite) TestConvertCreditsInvalidCurrency() {
+	_, err := s.Service.ConvertCurrency(context.Background(), api.ConvertCurrencyRequest{
+		Amount:   10,
+		Currency: "",
+	})
+	s.Assert().Error(err)
+	s.Assert().Equal(api.ErrInvalidCurrencyFormat, err)
+
+	_, err = s.Service.ConvertCurrency(context.Background(), api.ConvertCurrencyRequest{
+		Amount:   10,
+		Currency: "novalid",
+	})
+	s.Assert().Error(err)
+	s.Assert().Equal(api.ErrInvalidCurrencyFormat, err)
+}
+
+func (s *testManageCreditsSuite) TestConvertCreditsConversionRateApplied() {
+	res, err := s.Service.ConvertCurrency(context.Background(), api.ConvertCurrencyRequest{
+		Amount:   10,
+		Currency: "usd",
+	})
+	s.Require().NoError(err)
+
+	s.Assert().Equal(uint(5), res.Credits)
 }
 
 func (s *testManageCreditsSuite) TestIncreaseCreditsToZero() {

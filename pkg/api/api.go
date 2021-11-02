@@ -103,7 +103,17 @@ type GetBalanceResponse struct {
 }
 
 // ConvertCurrencyRequest is the input for the CreditsV1.ConvertCurrency method.
-type ConvertCurrencyRequest struct{}
+type ConvertCurrencyRequest struct {
+	// Amount is the money in the minimum currency value (e.g. cents for USD) that should be converted
+	// to credits.
+	Amount uint
+
+	// Currency is the ISO 4217 currency code in lowercase format.
+	Currency string
+}
 
 // ConvertCurrencyResponse is the output of the CreditsV1.ConvertCurrency method.
-type ConvertCurrencyResponse struct{}
+type ConvertCurrencyResponse struct {
+	// Credits contains the result of converting a certain currency value into credits.
+	Credits uint
+}
