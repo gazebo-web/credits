@@ -2,19 +2,59 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gitlab.com/ignitionrobotics/billing/credits/pkg/api"
+	"gitlab.com/ignitionrobotics/billing/credits/pkg/domain/persistence"
+	"gorm.io/gorm"
 	"io"
 	"log"
 )
 
+var (
+	// ErrHandleNotProvided is returned when the handler is not provided in the request.
+	ErrHandleNotProvided = errors.New("handler not provided")
+	// ErrInvalidAmount is returned when a wrong amount is passed in the request.
+	ErrInvalidAmount = errors.New("invalid amount")
+	// ErrInvalidCurrencyFormat is returned when the currency format is invalid.
+	ErrInvalidCurrencyFormat = errors.New("invalid currency format")
+	// ErrMissingApplication is returned when there's no application defined in a request.
+	ErrMissingApplication = errors.New("missing application")
+)
+
 // service contains the business logic to manage credits.
 type service struct {
-	logger *log.Logger
+	logger         *log.Logger
+	db             *gorm.DB
+	conversionRate uint
 }
 
 // IncreaseCredits increases the amount of service for a given user.
 func (s *service) IncreaseCredits(ctx context.Context, req api.IncreaseCreditsRequest) (api.IncreaseCreditsResponse, error) {
-	panic("implement me")
+	if len(req.Handle) == 0 {
+		s.logger.Println("No handle provided")
+		return api.IncreaseCreditsResponse{}, ErrHandleNotProvided
+	}
+	if req.Amount == 0 {
+		s.logger.Println("Invalid amount")
+		return api.IncreaseCreditsResponse{}, ErrInvalidAmount
+	}
+	// TODO: Add check for valid currency values as well as lowercase.
+	if len(req.Currency) == 0 || len(req.Currency) > 3 {
+		s.logger.Println("Invalid currency format")
+		return api.IncreaseCreditsResponse{}, ErrInvalidCurrencyFormat
+	}
+	if len(req.Application) == 0 {
+		s.logger.Println("Missing application")
+		return api.IncreaseCreditsResponse{}, ErrMissingApplication
+	}
+
+	value := s.calculateCredits(req.Amount, req.Currency)
+
+	if err := persistence.UpdateCredits(s.db, req.Handle, req.Application, int(value)); err != nil {
+		return api.IncreaseCreditsResponse{}, err
+	}
+
+	return api.IncreaseCreditsResponse{}, nil
 }
 
 // DecreaseCredits decreases the amount of service for a given user.
@@ -32,17 +72,24 @@ func (s *service) ConvertCurrency(ctx context.Context, req api.ConvertCurrencyRe
 	panic("implement me")
 }
 
+func (s *service) calculateCredits(amount uint, currency string) uint {
+	return amount / s.conversionRate
+}
+
 // Service holds the methods of the service in charge of managing user credits.
 type Service interface {
 	api.CreditsV1
 }
 
 // NewService initializes a new api.CreditsV1 service implementation.
-func NewService(logger *log.Logger) Service {
+// `rate` is the conversion rate between currency and credits.
+func NewService(db *gorm.DB, logger *log.Logger, rate uint) Service {
 	if logger == nil {
 		logger = log.New(io.Discard, "", log.LstdFlags)
 	}
 	return &service{
-		logger: logger,
+		db:             db,
+		logger:         logger,
+		conversionRate: rate,
 	}
 }

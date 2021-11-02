@@ -19,14 +19,18 @@ type CreditsV1 interface {
 
 // IncreaseCreditsRequest is the input for the CreditsV1.IncreaseCredits method.
 type IncreaseCreditsRequest struct {
-	// User is the username of the User that will receive the credits.
-	User string
+	// Handle is the username of the customer that will receive the credits.
+	Handle string
 
-	// Amount is the money that the user paid in cents.
+	// Amount is the money that the user paid in the minimum currency value (e.g. cents for USD) that should be converted
+	// to credits.
 	Amount uint
 
-	// Currency is the currency the user paid in.
+	// Currency is the ISO 4217 currency code in lowercase format.
 	Currency string
+
+	// Application is the application that credits are tracked for.
+	Application string
 }
 
 // IncreaseCreditsResponse is the output of the CreditsV1.IncreaseCredits method.
