@@ -70,7 +70,13 @@ func (s *service) GetBalance(ctx context.Context, req api.GetBalanceRequest) (ap
 
 // ConvertCurrency converts a certain amount of FIAT currency in USD to service.
 func (s *service) ConvertCurrency(ctx context.Context, req api.ConvertCurrencyRequest) (api.ConvertCurrencyResponse, error) {
-	panic("implement me")
+	if len(req.Currency) == 0 || len(req.Currency) > 3 {
+		s.logger.Println("Invalid currency format")
+		return api.ConvertCurrencyResponse{}, api.ErrInvalidCurrencyFormat
+	}
+	return api.ConvertCurrencyResponse{
+		Credits: s.calculateCredits(req.Amount, req.Currency),
+	}, nil
 }
 
 // calculateCredits applies the conversion rate to amount in a certain currency and returns a credits value.
@@ -84,7 +90,6 @@ type Service interface {
 }
 
 // NewService initializes a new api.CreditsV1 service implementation.
-// `rate` is the conversion rate between currency and credits.
 func NewService(db *gorm.DB, logger *log.Logger, rate uint) Service {
 	if logger == nil {
 		logger = log.New(io.Discard, "", log.LstdFlags)
