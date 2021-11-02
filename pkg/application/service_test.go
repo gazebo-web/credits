@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-type testIncreaseCreditsSuite struct {
+type testManageCreditsSuite struct {
 	suite.Suite
 	DB      *gorm.DB
 	Logger  *log.Logger
@@ -23,15 +23,12 @@ type testIncreaseCreditsSuite struct {
 	UserC   models.Customer
 }
 
-func TestIncreaseCredits(t *testing.T) {
-	suite.Run(t, new(testIncreaseCreditsSuite))
+func TestManageCredits(t *testing.T) {
+	suite.Run(t, new(testManageCreditsSuite))
 }
 
-func (s *testIncreaseCreditsSuite) SetupSuite() {
-	s.Logger = log.New(os.Stdout, "[TestIncreaseCredits] ", log.LstdFlags|log.Lshortfile|log.Lmsgprefix)
-}
-
-func (s *testIncreaseCreditsSuite) SetupTest() {
+func (s *testManageCreditsSuite) SetupSuite() {
+	s.Logger = log.New(os.Stdout, "[TestManageCredits] ", log.LstdFlags|log.Lshortfile|log.Lmsgprefix)
 	var err error
 
 	var c conf.Config
@@ -40,103 +37,185 @@ func (s *testIncreaseCreditsSuite) SetupTest() {
 	s.DB, err = persistence.OpenConn(c.Database)
 	s.Require().NoError(err)
 
+	s.Require().NoError(persistence.DropTables(s.DB))
+}
+
+func (s *testManageCreditsSuite) SetupTest() {
 	s.Require().NoError(persistence.MigrateTables(s.DB))
+	var err error
 
 	s.Service = NewService(s.DB, s.Logger, 2)
 
 	s.UserA = models.Customer{
-		Model:       gorm.Model{},
 		Handle:      "test1",
 		Application: "fuel",
 		Credits:     100,
 	}
 	s.UserA, err = persistence.CreateCustomer(s.DB, s.UserA)
+	s.Require().NoError(err)
 
 	s.UserB = models.Customer{
-		Model:       gorm.Model{},
 		Handle:      "test2",
 		Application: "cloudsim",
 		Credits:     -100,
 	}
 	s.UserB, err = persistence.CreateCustomer(s.DB, s.UserB)
+	s.Require().NoError(err)
 
 	s.UserC = models.Customer{
-		Model:       gorm.Model{},
 		Handle:      "test3",
 		Application: "cloudsim",
 		Credits:     0,
 	}
-	s.UserB, err = persistence.CreateCustomer(s.DB, s.UserB)
+	s.UserC, err = persistence.CreateCustomer(s.DB, s.UserC)
+	s.Require().NoError(err)
+}
+func (s *testManageCreditsSuite) TearDownTest() {
+	s.Require().NoError(persistence.DropTables(s.DB))
 }
 
-func (s *testIncreaseCreditsSuite) TestIncreaseCreditsFailsHandleNotSpecified() {
+func (s *testManageCreditsSuite) TestManageCreditsFailsHandleNotSpecified() {
 	_, err := s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "",
-		Amount:      10,
-		Currency:    "usd",
-		Application: "cloudsim",
+		Transaction: api.Transaction{
+			Handle:      "",
+			Amount:      10,
+			Currency:    "usd",
+			Application: "cloudsim",
+		},
+	})
+	s.Assert().Error(err)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "",
+			Amount:      10,
+			Currency:    "usd",
+			Application: "cloudsim",
+		},
 	})
 	s.Assert().Error(err)
 }
 
-func (s *testIncreaseCreditsSuite) TestIncreaseCreditsFailsAmountIsZero() {
+func (s *testManageCreditsSuite) TestManageCreditsFailsAmountIsZero() {
 	_, err := s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "test1",
-		Amount:      0,
-		Currency:    "usd",
-		Application: "cloudsim",
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      0,
+			Currency:    "usd",
+			Application: "cloudsim",
+		},
+	})
+	s.Assert().Error(err)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      0,
+			Currency:    "usd",
+			Application: "cloudsim",
+		},
 	})
 	s.Assert().Error(err)
 }
 
-func (s *testIncreaseCreditsSuite) TestIncreaseCreditsFailsCurrencyIsInvalid() {
+func (s *testManageCreditsSuite) TestManageCreditsFailsCurrencyIsInvalid() {
 	_, err := s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "test1",
-		Amount:      10,
-		Currency:    "",
-		Application: "cloudsim",
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "",
+			Application: "cloudsim",
+		},
 	})
 	s.Assert().Error(err)
 
 	_, err = s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "test1",
-		Amount:      10,
-		Currency:    "novalid",
-		Application: "cloudsim",
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "novalid",
+			Application: "cloudsim",
+		},
+	})
+	s.Assert().Error(err)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "",
+			Application: "cloudsim",
+		},
+	})
+	s.Assert().Error(err)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "novalid",
+			Application: "cloudsim",
+		},
 	})
 	s.Assert().Error(err)
 }
 
-func (s *testIncreaseCreditsSuite) TestIncreaseCreditsMissingApplication() {
+func (s *testManageCreditsSuite) TestManageCreditsMissingApplication() {
 	_, err := s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "test1",
-		Amount:      10,
-		Currency:    "usd",
-		Application: "",
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "usd",
+			Application: "",
+		},
+	})
+	s.Assert().Error(err)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "usd",
+			Application: "",
+		},
 	})
 	s.Assert().Error(err)
 }
 
-func (s *testIncreaseCreditsSuite) TestIncreaseCreditsNonexistentHandleAndApplicationPair() {
+func (s *testManageCreditsSuite) TestManageCreditsNonexistentHandleAndApplicationPair() {
 	_, err := s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "test1",
-		Amount:      10,
-		Currency:    "usd",
-		Application: "cloudsim",
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "usd",
+			Application: "cloudsim",
+		},
+	})
+	s.Assert().Error(err)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10,
+			Currency:    "usd",
+			Application: "cloudsim",
+		},
 	})
 	s.Assert().Error(err)
 }
 
-func (s *testIncreaseCreditsSuite) TestIncreaseCreditsConversionApplied() {
+func (s *testManageCreditsSuite) TestIncreaseCreditsConversionApplied() {
 	before, err := persistence.GetCustomer(s.DB, "test1", "fuel")
 	s.Require().NoError(err)
 	s.Assert().Equal(100, before.Credits)
 
 	_, err = s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "test1",
-		Amount:      10, // Conversion rate: 2 -> 10 usd = 5 credits
-		Currency:    "usd",
-		Application: "fuel",
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10, // Conversion rate: 2 -> 10 usd = 5 credits
+			Currency:    "usd",
+			Application: "fuel",
+		},
 	})
 	s.Assert().NoError(err)
 
@@ -145,16 +224,38 @@ func (s *testIncreaseCreditsSuite) TestIncreaseCreditsConversionApplied() {
 	s.Assert().Equal(before.Credits+5, after.Credits)
 }
 
-func (s *testIncreaseCreditsSuite) TestIncreaseCreditsToZero() {
+func (s *testManageCreditsSuite) TestDecreaseCreditsConversionApplied() {
+	before, err := persistence.GetCustomer(s.DB, "test1", "fuel")
+	s.Require().NoError(err)
+	s.Assert().Equal(100, before.Credits)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      10, // Conversion rate: 2 -> 10 usd = 5 credits
+			Currency:    "usd",
+			Application: "fuel",
+		},
+	})
+	s.Assert().NoError(err)
+
+	after, err := persistence.GetCustomer(s.DB, "test1", "fuel")
+	s.Require().NoError(err)
+	s.Assert().Equal(before.Credits-5, after.Credits)
+}
+
+func (s *testManageCreditsSuite) TestIncreaseCreditsToZero() {
 	before, err := persistence.GetCustomer(s.DB, "test2", "cloudsim")
 	s.Require().NoError(err)
 	s.Assert().Equal(-100, before.Credits)
 
 	_, err = s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
-		Handle:      "test2",
-		Amount:      200, // Conversion rate: 2 -> 200 usd = 100 credits
-		Currency:    "usd",
-		Application: "cloudsim",
+		Transaction: api.Transaction{
+			Handle:      "test2",
+			Amount:      200, // Conversion rate: 2 -> 200 usd = 100 credits
+			Currency:    "usd",
+			Application: "cloudsim",
+		},
 	})
 	s.Assert().NoError(err)
 
@@ -163,6 +264,22 @@ func (s *testIncreaseCreditsSuite) TestIncreaseCreditsToZero() {
 	s.Assert().Equal(0, after.Credits)
 }
 
-func (s *testIncreaseCreditsSuite) TearDownTest() {
-	s.Require().NoError(persistence.DropTables(s.DB))
+func (s *testManageCreditsSuite) TestDecreaseCreditsToZero() {
+	before, err := persistence.GetCustomer(s.DB, "test1", "fuel")
+	s.Require().NoError(err)
+	s.Assert().Equal(100, before.Credits)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
+		Transaction: api.Transaction{
+			Handle:      "test1",
+			Amount:      200, // Conversion rate: 2 -> 200 usd = 100 credits
+			Currency:    "usd",
+			Application: "fuel",
+		},
+	})
+	s.Assert().NoError(err)
+
+	after, err := persistence.GetCustomer(s.DB, "test1", "fuel")
+	s.Require().NoError(err)
+	s.Assert().Equal(0, after.Credits)
 }

@@ -1,6 +1,9 @@
 package api
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // CreditsV1 holds the methods that allow managing user credits.
 type CreditsV1 interface {
@@ -17,8 +20,19 @@ type CreditsV1 interface {
 	ConvertCurrency(ctx context.Context, req ConvertCurrencyRequest) (ConvertCurrencyResponse, error)
 }
 
-// IncreaseCreditsRequest is the input for the CreditsV1.IncreaseCredits method.
-type IncreaseCreditsRequest struct {
+var (
+	// ErrHandleNotProvided is returned when the handler is not provided in the request.
+	ErrHandleNotProvided = errors.New("handler not provided")
+	// ErrInvalidAmount is returned when an invalid amount is passed in the request.
+	ErrInvalidAmount = errors.New("invalid amount")
+	// ErrInvalidCurrencyFormat is returned when the currency format is invalid.
+	ErrInvalidCurrencyFormat = errors.New("invalid currency format")
+	// ErrMissingApplication is returned when there's no application defined in a request.
+	ErrMissingApplication = errors.New("missing application")
+)
+
+// Transaction is an operation made with credits. It's usually used to increase and decrease the amount of credits of certain models.Customer.
+type Transaction struct {
 	// Handle is the username of the customer that will receive the credits.
 	Handle string
 
@@ -33,11 +47,36 @@ type IncreaseCreditsRequest struct {
 	Application string
 }
 
+// Validate validates the current transaction is valid.
+func (t Transaction) Validate() error {
+	if len(t.Handle) == 0 {
+		return ErrHandleNotProvided
+	}
+	if t.Amount == 0 {
+		return ErrInvalidAmount
+	}
+	// TODO: Add check for valid currency values as well as lowercase.
+	if len(t.Currency) == 0 || len(t.Currency) > 3 {
+		return ErrInvalidCurrencyFormat
+	}
+	if len(t.Application) == 0 {
+		return ErrMissingApplication
+	}
+	return nil
+}
+
+// IncreaseCreditsRequest is the input for the CreditsV1.IncreaseCredits method.
+type IncreaseCreditsRequest struct {
+	Transaction
+}
+
 // IncreaseCreditsResponse is the output of the CreditsV1.IncreaseCredits method.
 type IncreaseCreditsResponse struct{}
 
 // DecreaseCreditsRequest is the input for the CreditsV1.DecreaseCredits method.
-type DecreaseCreditsRequest struct{}
+type DecreaseCreditsRequest struct {
+	Transaction
+}
 
 // DecreaseCreditsResponse is the output of the CreditsV1.DecreaseCredits method.
 type DecreaseCreditsResponse struct{}
