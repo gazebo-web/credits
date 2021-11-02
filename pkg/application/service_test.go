@@ -70,6 +70,7 @@ func (s *testManageCreditsSuite) SetupTest() {
 	s.UserC, err = persistence.CreateCustomer(s.DB, s.UserC)
 	s.Require().NoError(err)
 }
+
 func (s *testManageCreditsSuite) TearDownTest() {
 	s.Require().NoError(persistence.DropTables(s.DB))
 }
@@ -242,6 +243,49 @@ func (s *testManageCreditsSuite) TestDecreaseCreditsConversionApplied() {
 	after, err := persistence.GetCustomer(s.DB, "test1", "fuel")
 	s.Require().NoError(err)
 	s.Assert().Equal(before.Credits-5, after.Credits)
+}
+func (s *testManageCreditsSuite) TestGetBalanceMissingAttributes() {
+	_, err := s.Service.GetBalance(context.Background(), api.GetBalanceRequest{
+		Handle:      "",
+		Application: "notfound",
+	})
+	s.Assert().Error(err)
+	s.Assert().Equal(api.ErrHandleNotProvided, err)
+
+	_, err = s.Service.GetBalance(context.Background(), api.GetBalanceRequest{
+		Handle:      "test5",
+		Application: "",
+	})
+	s.Assert().Error(err)
+	s.Assert().Equal(api.ErrMissingApplication, err)
+}
+
+func (s *testManageCreditsSuite) TestGetBalanceNotFound() {
+	_, err := s.Service.GetBalance(context.Background(), api.GetBalanceRequest{
+		Handle:      "test1",
+		Application: "notfound",
+	})
+	s.Assert().Error(err)
+
+	_, err = s.Service.GetBalance(context.Background(), api.GetBalanceRequest{
+		Handle:      "test5",
+		Application: "fuel",
+	})
+	s.Assert().Error(err)
+}
+
+func (s *testManageCreditsSuite) TestGetBalance() {
+	c, err := persistence.GetCustomer(s.DB, "test1", "fuel")
+	s.Require().NoError(err)
+
+	balance := c.Credits
+
+	res, err := s.Service.GetBalance(context.Background(), api.GetBalanceRequest{
+		Handle:      "test1",
+		Application: "fuel",
+	})
+	s.Require().NoError(err)
+	s.Assert().Equal(balance, res.Credits)
 }
 
 func (s *testManageCreditsSuite) TestIncreaseCreditsToZero() {

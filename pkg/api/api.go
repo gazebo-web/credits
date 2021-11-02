@@ -82,10 +82,25 @@ type DecreaseCreditsRequest struct {
 type DecreaseCreditsResponse struct{}
 
 // GetBalanceRequest is the input for the CreditsV1.GetBalance method.
-type GetBalanceRequest struct{}
+type GetBalanceRequest struct {
+	// Handle is the username of the customer that should receive the balance summary.
+	Handle string
+
+	// Application is the application that credits are tracked for.
+	Application string
+}
 
 // GetBalanceResponse is the output of the CreditsV1.GetBalance method.
-type GetBalanceResponse struct{}
+type GetBalanceResponse struct {
+	// Handle is the username of the customer that is receiving the balance summary.
+	Handle string
+
+	// Application is the application that credits are tracked for.
+	Application string
+
+	// Credits is the amount of credits that the customer identified by Handle has.
+	Credits int
+}
 
 // ConvertCurrencyRequest is the input for the CreditsV1.ConvertCurrency method.
 type ConvertCurrencyRequest struct{}

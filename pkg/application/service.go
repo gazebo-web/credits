@@ -48,7 +48,24 @@ func (s *service) DecreaseCredits(ctx context.Context, req api.DecreaseCreditsRe
 
 // GetBalance returns the current amount of service of a given user.
 func (s *service) GetBalance(ctx context.Context, req api.GetBalanceRequest) (api.GetBalanceResponse, error) {
-	panic("implement me")
+	if len(req.Handle) == 0 {
+		s.logger.Println("No handle provided")
+		return api.GetBalanceResponse{}, api.ErrHandleNotProvided
+	}
+	if len(req.Application) == 0 {
+		s.logger.Println("Missing application")
+		return api.GetBalanceResponse{}, api.ErrMissingApplication
+	}
+	c, err := persistence.GetCustomer(s.db, req.Handle, req.Application)
+	if err != nil {
+		return api.GetBalanceResponse{}, err
+	}
+
+	return api.GetBalanceResponse{
+		Handle:      c.Handle,
+		Application: c.Application,
+		Credits:     c.Credits,
+	}, nil
 }
 
 // ConvertCurrency converts a certain amount of FIAT currency in USD to service.
