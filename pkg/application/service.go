@@ -89,8 +89,8 @@ type Service interface {
 	api.CreditsV1
 }
 
-// NewService initializes a new api.CreditsV1 service implementation.
-func NewService(db *gorm.DB, logger *log.Logger, rate uint) Service {
+// NewCreditsService initializes a new api.CreditsV1 service implementation.
+func NewCreditsService(db *gorm.DB, logger *log.Logger, rate uint) Service {
 	if logger == nil {
 		logger = log.New(io.Discard, "", log.LstdFlags)
 	}

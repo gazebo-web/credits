@@ -15,12 +15,12 @@ import (
 
 type testManageCreditsSuite struct {
 	suite.Suite
-	DB      *gorm.DB
-	Logger  *log.Logger
-	Service Service
-	UserA   models.Customer
-	UserB   models.Customer
-	UserC   models.Customer
+	DB        *gorm.DB
+	Logger    *log.Logger
+	Service   Service
+	CustomerA models.Customer
+	CustomerB models.Customer
+	CustomerC models.Customer
 }
 
 func TestManageCredits(t *testing.T) {
@@ -44,30 +44,30 @@ func (s *testManageCreditsSuite) SetupTest() {
 	s.Require().NoError(persistence.MigrateTables(s.DB))
 	var err error
 
-	s.Service = NewService(s.DB, s.Logger, 2)
+	s.Service = NewCreditsService(s.DB, s.Logger, 2)
 
-	s.UserA = models.Customer{
+	s.CustomerA = models.Customer{
 		Handle:      "test1",
 		Application: "fuel",
 		Credits:     100,
 	}
-	s.UserA, err = persistence.CreateCustomer(s.DB, s.UserA)
+	s.CustomerA, err = persistence.CreateCustomer(s.DB, s.CustomerA)
 	s.Require().NoError(err)
 
-	s.UserB = models.Customer{
+	s.CustomerB = models.Customer{
 		Handle:      "test2",
 		Application: "cloudsim",
 		Credits:     -100,
 	}
-	s.UserB, err = persistence.CreateCustomer(s.DB, s.UserB)
+	s.CustomerB, err = persistence.CreateCustomer(s.DB, s.CustomerB)
 	s.Require().NoError(err)
 
-	s.UserC = models.Customer{
+	s.CustomerC = models.Customer{
 		Handle:      "test3",
 		Application: "cloudsim",
 		Credits:     0,
 	}
-	s.UserC, err = persistence.CreateCustomer(s.DB, s.UserC)
+	s.CustomerC, err = persistence.CreateCustomer(s.DB, s.CustomerC)
 	s.Require().NoError(err)
 }
 
