@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/caarlos0/env/v6 v6.7.2
+	github.com/go-chi/chi/v5 v5.0.5
 	github.com/stretchr/testify v1.7.0
 	gorm.io/driver/mysql v1.1.3
 	gorm.io/gorm v1.22.2

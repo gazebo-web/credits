@@ -43,6 +43,12 @@ func (db *Database) Parse() error {
 type Config struct {
 	// Database contains the configuration needed to open an SQL connection.
 	Database Database
+
+	// ConversionRate represents how many USD cents are needed to get 1 credit.
+	ConversionRate uint `env:"CREDITS_CONVERSION_RATE,required"`
+
+	// Port defines the TCP port used to listen for incoming HTTP requests.
+	Port uint `env:"CREDITS_HTTP_SERVER_PORT" envDefault:"80"`
 }
 
 // Parse fills Config data from an external source.
