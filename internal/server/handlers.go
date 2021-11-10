@@ -72,6 +72,22 @@ func (s *Server) ConvertCurrency(w http.ResponseWriter, r *http.Request) {
 	s.writeResponse(w, &out)
 }
 
+// GetUnitPrice is an HTTP handler to call the api.CreditsV1's GetUnitPrice method.
+func (s *Server) GetUnitPrice(w http.ResponseWriter, r *http.Request) {
+	var in api.GetUnitPriceRequest
+	if err := s.readBodyJSON(w, r, &in); err != nil {
+		return
+	}
+
+	out, err := s.credits.GetUnitPrice(r.Context(), in)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s.writeResponse(w, &out)
+}
+
 func (s *Server) writeResponse(w http.ResponseWriter, out interface{}) {
 	body, err := json.Marshal(out)
 	if err != nil {

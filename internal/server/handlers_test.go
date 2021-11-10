@@ -194,6 +194,23 @@ func (s *handlersTestSuite) TestConvertCurrencyOK() {
 	s.Assert().Equal(uint(50), out.Credits)
 }
 
+func (s *handlersTestSuite) TestGetUnitPriceOK() {
+	s.Handler = s.Server.GetUnitPrice
+
+	in := api.GetUnitPriceRequest{Currency: "usd"}
+
+	request := s.setupRequest(in, http.MethodPost)
+
+	s.Handler.ServeHTTP(s.ResponseRecorder, request)
+
+	s.Require().Equal(http.StatusOK, s.ResponseRecorder.Code)
+
+	var out api.GetUnitPriceResponse
+	s.parseResponseJSON(&out)
+
+	s.Assert().Equal(uint(2), out.Amount)
+}
+
 func (s *handlersTestSuite) setupRequest(in interface{}, method string) *http.Request {
 	body, err := json.Marshal(in)
 	s.Require().NoError(err)

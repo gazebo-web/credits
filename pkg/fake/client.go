@@ -14,6 +14,13 @@ type Fake struct {
 	mock.Mock
 }
 
+// GetUnitPrice mocks a call to the Credits API.
+func (c *Fake) GetUnitPrice(ctx context.Context, req api.GetUnitPriceRequest) (api.GetUnitPriceResponse, error) {
+	args := c.Called(ctx, req)
+	res := args.Get(0).(api.GetUnitPriceResponse)
+	return res, args.Error(1)
+}
+
 // IncreaseCredits mocks a call to the Credits API.
 func (c *Fake) IncreaseCredits(ctx context.Context, req api.IncreaseCreditsRequest) (api.IncreaseCreditsResponse, error) {
 	args := c.Called(ctx, req)

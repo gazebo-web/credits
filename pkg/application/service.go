@@ -16,6 +16,18 @@ type service struct {
 	conversionRate uint
 }
 
+// GetUnitPrice returns the value of how much a credit costs.
+func (s *service) GetUnitPrice(ctx context.Context, req api.GetUnitPriceRequest) (api.GetUnitPriceResponse, error) {
+	// TODO: Add check for valid currency values as well as lowercase.
+	if len(req.Currency) == 0 || len(req.Currency) > 3 {
+		return api.GetUnitPriceResponse{}, api.ErrInvalidCurrencyFormat
+	}
+	return api.GetUnitPriceResponse{
+		Amount:   s.conversionRate,
+		Currency: "usd",
+	}, nil
+}
+
 // IncreaseCredits increases the amount of service for a given user.
 func (s *service) IncreaseCredits(ctx context.Context, req api.IncreaseCreditsRequest) (api.IncreaseCreditsResponse, error) {
 	if err := req.Validate(); err != nil {

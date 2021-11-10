@@ -15,6 +15,15 @@ type client struct {
 	client net.Client
 }
 
+// GetUnitPrice performs an HTTP request to get the unit price of each credit in a certain currency.
+func (c *client) GetUnitPrice(ctx context.Context, in api.GetUnitPriceRequest) (api.GetUnitPriceResponse, error) {
+	var out api.GetUnitPriceResponse
+	if err := c.client.Call(ctx, "GetUnitPrice", &in, &out); err != nil {
+		return api.GetUnitPriceResponse{}, err
+	}
+	return out, nil
+}
+
 // IncreaseCredits performs an HTTP request to increase the given user credits.
 func (c *client) IncreaseCredits(ctx context.Context, in api.IncreaseCreditsRequest) (api.IncreaseCreditsResponse, error) {
 	var out api.IncreaseCreditsResponse
@@ -74,6 +83,10 @@ func NewCreditsClientV1(baseURL *url.URL, timeout time.Duration) Client {
 		"ConvertCurrency": {
 			Method: http.MethodPost,
 			Path:   "/credits/convert",
+		},
+		"GetUnitPrice": {
+			Method: http.MethodPost,
+			Path:   "/credits/unit_price",
 		},
 	}
 	return &client{
