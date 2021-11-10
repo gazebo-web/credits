@@ -91,6 +91,7 @@ func NewServer(opts Options) *Server {
 		r.Post("/increase", s.IncreaseCredits)
 		r.Post("/decrease", s.DecreaseCredits)
 		r.Post("/convert", s.ConvertCurrency)
+		r.Post("/unit_price", s.GetUnitPrice)
 	})
 
 	s.httpServer = http.Server{

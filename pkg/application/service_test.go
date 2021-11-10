@@ -363,3 +363,18 @@ func (s *testManageCreditsSuite) TestDecreaseCreditsToZero() {
 	s.Require().NoError(err)
 	s.Assert().Equal(0, after.Credits)
 }
+
+func (s *testManageCreditsSuite) TestGetUnitPriceValidationFails() {
+	_, err := s.Service.GetUnitPrice(context.Background(), api.GetUnitPriceRequest{Currency: ""})
+	s.Assert().Error(err)
+}
+
+func (s *testManageCreditsSuite) TestGetUnitPrice() {
+	const currency = "usd"
+	res, err := s.Service.GetUnitPrice(context.Background(), api.GetUnitPriceRequest{Currency: currency})
+	s.Require().NoError(err)
+
+	// The amount should be the conversion rate
+	s.Assert().Equal(uint(2), res.Amount)
+	s.Assert().Equal(currency, res.Currency)
+}

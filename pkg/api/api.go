@@ -18,6 +18,9 @@ type CreditsV1 interface {
 
 	// ConvertCurrency converts a certain amount of FIAT currency in USD to credits.
 	ConvertCurrency(ctx context.Context, req ConvertCurrencyRequest) (ConvertCurrencyResponse, error)
+
+	// GetUnitPrice returns the amount of currency needed to buy 1 credit.
+	GetUnitPrice(ctx context.Context, req GetUnitPriceRequest) (GetUnitPriceResponse, error)
 }
 
 var (
@@ -116,4 +119,19 @@ type ConvertCurrencyRequest struct {
 type ConvertCurrencyResponse struct {
 	// Credits contains the result of converting a certain currency value into credits.
 	Credits uint `json:"credits"`
+}
+
+// GetUnitPriceRequest is the input for the CreditsV1.GetUnitPrice method.
+type GetUnitPriceRequest struct {
+	// Currency is the ISO 4217 currency code in lowercase format.
+	Currency string `json:"currency"`
+}
+
+// GetUnitPriceResponse is the output of the CreditsV1.GetUnitPrice method.
+type GetUnitPriceResponse struct {
+	// Amount is the money in the minimum currency value (e.g. cents for USD) of how much a credit cost.
+	Amount uint `json:"amount"`
+
+	// Currency is the ISO 4217 currency code in lowercase format.
+	Currency string `json:"currency"`
 }
