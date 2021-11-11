@@ -29,6 +29,10 @@ func Run(config conf.Config, logger *log.Logger) error {
 		return err
 	}
 
+	if err = persistence.MigrateTables(db); err != nil {
+		return err
+	}
+
 	logger.Println("Initializing Credits service")
 	cs := application.NewCreditsService(db, logger, config.ConversionRate)
 
