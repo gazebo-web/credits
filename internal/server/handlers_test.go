@@ -208,7 +208,7 @@ func (s *handlersTestSuite) TestGetUnitPriceOK() {
 	var out api.GetUnitPriceResponse
 	s.parseResponseJSON(&out)
 
-	s.Assert().Equal(uint(2), out.Amount)
+	s.Assert().Equal(uint(200), out.Amount)
 }
 
 func (s *handlersTestSuite) setupRequest(in interface{}, method string) *http.Request {
