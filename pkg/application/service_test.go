@@ -375,6 +375,6 @@ func (s *testManageCreditsSuite) TestGetUnitPrice() {
 	s.Require().NoError(err)
 
 	// The amount should be the conversion rate
-	s.Assert().Equal(uint(2), res.Amount)
+	s.Assert().Equal(uint(200), res.Amount) // 2 usd equals 200 cents.
 	s.Assert().Equal(currency, res.Currency)
 }
