@@ -23,7 +23,7 @@ func (s *service) GetUnitPrice(ctx context.Context, req api.GetUnitPriceRequest)
 		return api.GetUnitPriceResponse{}, api.ErrInvalidCurrencyFormat
 	}
 	return api.GetUnitPriceResponse{
-		Amount:   s.conversionRate,
+		Amount:   s.calculateUnitPrice(req.Currency),
 		Currency: "usd",
 	}, nil
 }
@@ -94,6 +94,11 @@ func (s *service) ConvertCurrency(ctx context.Context, req api.ConvertCurrencyRe
 // calculateCredits applies the conversion rate to amount in a certain currency and returns a credits value.
 func (s *service) calculateCredits(amount uint, currency string) uint {
 	return amount / s.conversionRate
+}
+
+// calculateUnitPrice returns the minimum amount of money needed to buy 1 credit.
+func (s *service) calculateUnitPrice(currency string) uint {
+	return s.conversionRate * 100
 }
 
 // Service holds the methods of the service in charge of managing user credits.
