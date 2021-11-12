@@ -102,7 +102,6 @@ func NewServer(opts Options) *Server {
 	s.router.Use(middleware.RealIP)
 	s.router.Use(middleware.Logger)
 	s.router.Use(middleware.Recoverer)
-	s.router.Use(middleware.AllowContentType("application/json"))
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 
 	s.router.Route("/credits", func(r chi.Router) {
