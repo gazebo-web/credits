@@ -15,7 +15,7 @@ func CreateCustomer(db *gorm.DB, customer models.Customer) (models.Customer, err
 
 // UpdateCredits increases or decreases a certain amount of credits to a specific customer given by its handle
 // for the given application.
-// This operation will not create a new `Customer` if it is not found.
+// It creates a new customer if it doesn't exist.
 func UpdateCredits(db *gorm.DB, handle, application string, value int) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		var c models.Customer
@@ -23,8 +23,19 @@ func UpdateCredits(db *gorm.DB, handle, application string, value int) error {
 		err := tx.
 			Model(&models.Customer{}).Where("handle = ? AND application = ?", handle, application).
 			First(&c).Error
-		if err != nil {
+		if err != nil && err != gorm.ErrRecordNotFound {
 			return err
+		}
+
+		if err == gorm.ErrRecordNotFound {
+			c, err = CreateCustomer(tx, models.Customer{
+				Handle:      handle,
+				Application: application,
+				Credits:     0,
+			})
+			if err != nil {
+				return err
+			}
 		}
 
 		result := tx.
