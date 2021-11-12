@@ -19,17 +19,22 @@ func Setup(logger *log.Logger) (conf.Config, error) {
 		logger.Println("Failed to parse config:", err)
 		return conf.Config{}, err
 	}
+	logger.Println("Config parsed successfully")
 	return c, nil
 }
 
 // Run runs the web server using the given config.
 func Run(config conf.Config, logger *log.Logger) error {
+	logger.Println("Opening database connection:", "Host:", config.Database.Host, ", Database name:", config.Database.Name)
 	db, err := persistence.OpenConn(config.Database)
 	if err != nil {
+		logger.Println("Failed to open database connection")
 		return err
 	}
 
+	logger.Println("Migrating tables")
 	if err = persistence.MigrateTables(db); err != nil {
+		logger.Println("Failed to migrate tables")
 		return err
 	}
 
