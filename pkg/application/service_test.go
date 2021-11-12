@@ -192,7 +192,7 @@ func (s *testManageCreditsSuite) TestManageCreditsNonexistentHandleAndApplicatio
 			Application: "cloudsim",
 		},
 	})
-	s.Assert().Error(err)
+	s.Assert().NoError(err)
 
 	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
 		Transaction: api.Transaction{
@@ -202,7 +202,7 @@ func (s *testManageCreditsSuite) TestManageCreditsNonexistentHandleAndApplicatio
 			Application: "cloudsim",
 		},
 	})
-	s.Assert().Error(err)
+	s.Assert().NoError(err)
 }
 
 func (s *testManageCreditsSuite) TestIncreaseCreditsConversionApplied() {

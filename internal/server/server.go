@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 	"gitlab.com/ignitionrobotics/billing/credits/internal/conf"
 	"gitlab.com/ignitionrobotics/billing/credits/pkg/application"
 	"gitlab.com/ignitionrobotics/billing/credits/pkg/domain/persistence"
@@ -95,6 +97,14 @@ func NewServer(opts Options) *Server {
 	}
 
 	s.router = chi.NewRouter()
+
+	s.router.Use(middleware.RequestID)
+	s.router.Use(middleware.RealIP)
+	s.router.Use(middleware.Logger)
+	s.router.Use(middleware.Recoverer)
+	s.router.Use(middleware.AllowContentType("application/json"))
+	s.router.Use(render.SetContentType(render.ContentTypeJSON))
+
 	s.router.Route("/credits", func(r chi.Router) {
 		r.Get("/", s.GetBalance)
 		r.Post("/increase", s.IncreaseCredits)
