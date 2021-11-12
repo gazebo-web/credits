@@ -25,16 +25,16 @@ func Setup(logger *log.Logger) (conf.Config, error) {
 
 // Run runs the web server using the given config.
 func Run(config conf.Config, logger *log.Logger) error {
-	logger.Println("Opening database connection:", "Host:", config.Database.Host, ", Database name:", config.Database.Name)
+	logger.Println("Opening database connection:", "Host:", config.Database.Host, "Name:", config.Database.Name)
 	db, err := persistence.OpenConn(config.Database)
 	if err != nil {
-		logger.Println("Failed to open database connection")
+		logger.Println("Failed to open database connection:", err)
 		return err
 	}
 
 	logger.Println("Migrating tables")
 	if err = persistence.MigrateTables(db); err != nil {
-		logger.Println("Failed to migrate tables")
+		logger.Println("Failed to migrate tables:", err)
 		return err
 	}
 
