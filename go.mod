@@ -7,7 +7,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/render v1.0.1
 	github.com/stretchr/testify v1.7.0
-	gitlab.com/ignitionrobotics/web/ign-go v0.0.0-20211109185912-2322af1b387c
+	gitlab.com/ignitionrobotics/web/ign-go v0.0.0-20211116121949-e116aeb1e045
 	gorm.io/driver/mysql v1.1.3
 	gorm.io/gorm v1.22.2
 )
