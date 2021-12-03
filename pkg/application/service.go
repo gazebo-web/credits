@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"io"
 	"log"
+	"math"
 )
 
 // service contains the business logic to manage credits.
@@ -92,8 +93,9 @@ func (s *service) ConvertCurrency(ctx context.Context, req api.ConvertCurrencyRe
 }
 
 // calculateCredits applies the conversion rate to amount in a certain currency and returns a credits value.
+// It rounds up the output value to the closest integer.
 func (s *service) calculateCredits(amount uint, currency string) uint {
-	return amount / s.conversionRate
+	return uint(math.Ceil(float64(amount) / float64(s.conversionRate)))
 }
 
 // Service holds the methods of the service in charge of managing user credits.
