@@ -15,12 +15,13 @@ import (
 
 type testManageCreditsSuite struct {
 	suite.Suite
-	DB        *gorm.DB
-	Logger    *log.Logger
-	Service   Service
-	CustomerA models.Customer
-	CustomerB models.Customer
-	CustomerC models.Customer
+	DB             *gorm.DB
+	Logger         *log.Logger
+	Service        Service
+	CustomerA      models.Customer
+	CustomerB      models.Customer
+	CustomerC      models.Customer
+	ConversionRate uint
 }
 
 func TestManageCredits(t *testing.T) {
@@ -44,7 +45,8 @@ func (s *testManageCreditsSuite) SetupTest() {
 	s.Require().NoError(persistence.MigrateTables(s.DB))
 	var err error
 
-	s.Service = NewCreditsService(s.DB, s.Logger, 2)
+	s.ConversionRate = 500
+	s.Service = NewCreditsService(s.DB, s.Logger, s.ConversionRate)
 
 	s.CustomerA = models.Customer{
 		Handle:      "test1",
@@ -213,7 +215,7 @@ func (s *testManageCreditsSuite) TestIncreaseCreditsConversionApplied() {
 	_, err = s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
 		Transaction: api.Transaction{
 			Handle:      "test1",
-			Amount:      10, // Conversion rate: 2 -> 10 usd = 5 credits
+			Amount:      1000, // Conversion rate: 5 -> 10 usd = 2 credits
 			Currency:    "usd",
 			Application: "fuel",
 		},
@@ -222,7 +224,7 @@ func (s *testManageCreditsSuite) TestIncreaseCreditsConversionApplied() {
 
 	after, err := persistence.GetCustomer(s.DB, "test1", "fuel")
 	s.Require().NoError(err)
-	s.Assert().Equal(before.Credits+5, after.Credits)
+	s.Assert().Equal(before.Credits+2, after.Credits)
 }
 
 func (s *testManageCreditsSuite) TestDecreaseCreditsConversionApplied() {
@@ -233,7 +235,7 @@ func (s *testManageCreditsSuite) TestDecreaseCreditsConversionApplied() {
 	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
 		Transaction: api.Transaction{
 			Handle:      "test1",
-			Amount:      10, // Conversion rate: 2 -> 10 usd = 5 credits
+			Amount:      1000, // Conversion rate: 5 -> 10 usd = 5 credits
 			Currency:    "usd",
 			Application: "fuel",
 		},
@@ -242,7 +244,7 @@ func (s *testManageCreditsSuite) TestDecreaseCreditsConversionApplied() {
 
 	after, err := persistence.GetCustomer(s.DB, "test1", "fuel")
 	s.Require().NoError(err)
-	s.Assert().Equal(before.Credits-5, after.Credits)
+	s.Assert().Equal(before.Credits-2, after.Credits)
 }
 
 func (s *testManageCreditsSuite) TestGetBalanceMissingAttributes() {
@@ -316,12 +318,12 @@ func (s *testManageCreditsSuite) TestConvertCreditsInvalidCurrency() {
 
 func (s *testManageCreditsSuite) TestConvertCreditsConversionRateApplied() {
 	res, err := s.Service.ConvertCurrency(context.Background(), api.ConvertCurrencyRequest{
-		Amount:   10,
+		Amount:   1000, // 10 usd -> 2 credits
 		Currency: "usd",
 	})
 	s.Require().NoError(err)
 
-	s.Assert().Equal(uint(5), res.Credits)
+	s.Assert().Equal(uint(2), res.Credits)
 }
 
 func (s *testManageCreditsSuite) TestIncreaseCreditsToZero() {
@@ -332,7 +334,7 @@ func (s *testManageCreditsSuite) TestIncreaseCreditsToZero() {
 	_, err = s.Service.IncreaseCredits(context.Background(), api.IncreaseCreditsRequest{
 		Transaction: api.Transaction{
 			Handle:      "test2",
-			Amount:      200, // Conversion rate: 2 -> 200 usd = 100 credits
+			Amount:      50000, // Conversion rate: 5 -> 500 usd = 100 credits
 			Currency:    "usd",
 			Application: "cloudsim",
 		},
@@ -352,7 +354,7 @@ func (s *testManageCreditsSuite) TestDecreaseCreditsToZero() {
 	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{
 		Transaction: api.Transaction{
 			Handle:      "test1",
-			Amount:      200, // Conversion rate: 2 -> 200 usd = 100 credits
+			Amount:      50000, // Conversion rate: 5 -> 500 usd = 100 credits
 			Currency:    "usd",
 			Application: "fuel",
 		},
@@ -362,6 +364,24 @@ func (s *testManageCreditsSuite) TestDecreaseCreditsToZero() {
 	after, err := persistence.GetCustomer(s.DB, "test1", "fuel")
 	s.Require().NoError(err)
 	s.Assert().Equal(0, after.Credits)
+}
+
+func (s *testManageCreditsSuite) TestDecreaseCreditsConversionRoundedUp() {
+	before, err := persistence.GetCustomer(s.DB, "test1", "fuel")
+	s.Require().NoError(err)
+	s.Assert().Equal(100, before.Credits)
+
+	_, err = s.Service.DecreaseCredits(context.Background(), api.DecreaseCreditsRequest{Transaction: api.Transaction{
+		Handle:      "test1",
+		Amount:      s.ConversionRate + 10,
+		Currency:    "usd",
+		Application: "fuel",
+	}})
+	s.Require().NoError(err)
+
+	after, err := persistence.GetCustomer(s.DB, "test1", "fuel")
+	s.Require().NoError(err)
+	s.Assert().Equal(before.Credits-2, after.Credits)
 }
 
 func (s *testManageCreditsSuite) TestGetUnitPriceValidationFails() {
@@ -375,6 +395,6 @@ func (s *testManageCreditsSuite) TestGetUnitPrice() {
 	s.Require().NoError(err)
 
 	// The amount should be the conversion rate
-	s.Assert().Equal(uint(2), res.Amount)
+	s.Assert().Equal(uint(500), res.Amount)
 	s.Assert().Equal(currency, res.Currency)
 }
